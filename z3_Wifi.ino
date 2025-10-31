@@ -1,3 +1,55 @@
+// Try to connect to stored WiFi networks from EEPROM
+// Returns true if connected successfully, false otherwise
+bool connectToStoredNetworks() {
+  Serial.println("\nAttempting to connect to stored WiFi networks...");
+  
+  for (uint8_t i = 0; i < 3; i++) {
+    if (eepromConfig.isNetworkConfigured(i)) {
+      const char* storedSSID = eepromConfig.getSSID(i);
+      const char* storedPassword = eepromConfig.getPassword(i);
+      
+      Serial.print("Trying stored network ");
+      Serial.print(i);
+      Serial.print(": ");
+      Serial.println(storedSSID);
+      
+      WiFi.mode(WIFI_STA);
+      WiFi.begin(storedSSID, storedPassword);
+      
+      // Wait up to 10 seconds for connection
+      int attempts = 0;
+      while (WiFi.status() != WL_CONNECTED && attempts < 20) {
+        delay(500);
+        Serial.print(".");
+        attempts++;
+      }
+      
+      if (WiFi.status() == WL_CONNECTED) {
+        Serial.println("\nSuccessfully connected to stored network!");
+        
+        // Configure IP address
+        myIp = WiFi.localIP();
+        Serial.println((String)"ESP32 IP address (provided by router): " + myIp[0] + "." + myIp[1] + "." + myIp[2] + "." + myIp[3]);
+        myIp[3] = lastIPOctet;
+        Serial.println((String)"Changing IP address last octet to user setting, new desired IP address: " + myIp[0] + "." + myIp[1] + "." + myIp[2] + "." + myIp[3]);
+        while (!WiFi.config(myIp, WiFi.gatewayIP(), {255, 255, 255, 0})) {
+          Serial.println("!!!!!!!!IP address failing to set!!!!!!!!");
+          delay(200);
+        }
+        myIp = WiFi.localIP();
+        Serial.println((String)"IP address successfully set to: " + myIp[0] + "." + myIp[1] + "." + myIp[2] + "." + myIp[3]);
+        
+        return true;
+      } else {
+        Serial.println("\nFailed to connect, trying next network...");
+        WiFi.disconnect();
+      }
+    }
+  }
+  
+  Serial.println("No stored networks connected successfully.");
+  return false;
+}
 
 // setup and connect to wifi network
 void configWifi (void) {

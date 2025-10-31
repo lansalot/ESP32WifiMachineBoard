@@ -28,8 +28,6 @@ void ReceiveUdp()
       // PGN_0xC8_200 Hello from AgIO, respond with reply to AgIO
       if (autoSteerUdpData[3] == 0xC8)
       {
-        if (debug)
-          Serial.print((String) "PGN_0xC8_200 Hello from AgIO, Module ID: " + autoSteerUdpData[5]);
 
         // Create the Machine Reply message. (0x80, 0x81, 123, 123, 5, relayLo, relayHi, *, *, *, CRC}
         uint8_t helloFromMachineModule[11] = {0x80, 0x81, 123, 123, 5, 0, 0, 0, 0, 0, 0};
@@ -42,24 +40,13 @@ void ReceiveUdp()
         // Send the reply message. This should make the machine module in AgIO turn green
         SendUdp(helloFromMachineModule, sizeof(helloFromMachineModule), {255, 255, 255, 255}, 9999);
 
-        if (debug)
-        {
-          Serial.print("\tReply message: ");
-          for (int i = 0; i < sizeof(helloFromMachineModule); i++)
-            Serial.print((String)helloFromMachineModule[i] + " ");
-          Serial.println();
-        }
       }
 
       // PGN_0xC9_201 AgIO subnet change. AgIO would like us to change to this subnet.
       else if (autoSteerUdpData[3] == 201)
       {
-        if (debug)
-          Serial.print((String) "PGN_0xC9_201 Request from AgIO to change subnet to: " + autoSteerUdpData[7] + "." + autoSteerUdpData[8] + "." + autoSteerUdpData[9] + ".xxx");
 
         myIp = WiFi.localIP();
-        if (debug)
-          Serial.print((String) "\tmyIp: " + myIp[0] + "." + myIp[1] + "." + myIp[2] + "." + myIp[3]);
 
         if ((autoSteerUdpData[7] == myIp[0]) && (autoSteerUdpData[8] == myIp[1]) && (autoSteerUdpData[9] == myIp[2]))
         {

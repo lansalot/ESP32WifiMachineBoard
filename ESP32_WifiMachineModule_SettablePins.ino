@@ -9,14 +9,18 @@
 
 RelayBoard relayBoard(12, 13, 14, 5);
 #include <WiFi.h> // version 1.2.7
+#include <WebServer.h>
+#include <DNSServer.h>
 
+#include <WiFiUdp.h>
+#include <WiFiClient.h>
 // Enter Wifi details here
 const char *ssid = "xxxx";
 const char *password = "xxxx";
 const uint8_t lastIPOctet = 123; // The IP address will be set to xxx.xxx.xxx.lastIPOctet. Machine modules are expected to end in 123
 
 // Debug variables
-const bool debugWaitForMe = 0; // wait for someone to open a serial connection before proceeding with setup
+const bool debugWaitForMe = 0; // wait for someoníe to open a serial connection before proceeding with setup
 const bool debug = 0;          // additional serial messages to aid debug
 
 // Program variables
@@ -48,10 +52,25 @@ void setup()
     }
   }
 
+  // Initialize EEPROM
+  eepromConfig.begin();
+  eepromConfig.loadFromEEPROM();
+  
+  // Example: Set WiFi networks (uncomment and modify as needed)
+  // eepromConfig.setWifiNetwork(0, "HomeNetwork", "password123");
+  // eepromConfig.setWifiNetwork(1, "OfficeWiFi", "office456");
+  // eepromConfig.saveToEEPROM();
+  
   Serial.println("Instantiating relay board");
   relayBoard.begin();
   Serial.println("Setup complete");
-  configWifi();
+  
+  // Try to connect to stored WiFi networks first, fall back to hardcoded if none work
+  if (!connectToStoredNetworks()) {
+    Serial.println("Using hardcoded WiFi credentials...");
+    configWifi();
+  }
+  
   configUDP();
 }
 
