@@ -6,23 +6,13 @@
 // Adapted for 16-channel relay board from Amazon (AndyAOG)
 // Started 2025-10-31
 
-// This code does not support ethernet, serial, rate control, section switches, man/auto switches, web browser, eeprom, etc.
-// Relays connected to digital pins, controlled over Wifi udp. Nothing more.
+
 RelayBoard relayBoard(12, 13, 14, 5);
-// Libraries
 #include <WiFi.h> // version 1.2.7
 
-// Set pin assignments here
-// Warning: Ensure that the pin numbers you assign are valid output pins for your specific ESP32 model.
-const uint8_t pinRelays[] = {32, 33, 25, 26, 27, 14, 12, 13}; // Pins that relays are connected to. You must specify 1-64 pins.
-const bool pinStateActive = 1;                                // The pin's state when the section is active (1 or 0 when spraying/planting/etc)
-const bool highZ = 0;                                         // Set to 0 for LOW/HIGH. Set to 1 for LOW/HI-Z
-const uint8_t pinLedWifi = 23;                                // Pin 2 is connected to a blue LED on many ESP32 development boards
-const bool failSafePinState = 0;                              // if connection is lost, go to this pin state
-
 // Enter Wifi details here
-const char *ssid = "HomeAP";
-const char *password = "BigHouse14!!";
+const char *ssid = "xxxx";
+const char *password = "xxxx";
 const uint8_t lastIPOctet = 123; // The IP address will be set to xxx.xxx.xxx.lastIPOctet. Machine modules are expected to end in 123
 
 // Debug variables
@@ -31,7 +21,7 @@ const bool debug = 0;          // additional serial messages to aid debug
 
 // Program variables
 bool sectionStates[64]; // holds the state of AOG's sections. AOG supports up to 64 sections, we read all of them
-uint8_t pinConfig[24];  // uses the pin config's from the Arduino section of AOG
+uint8_t pinConfig[24];  // uses the pin config's from the Arduino section of AOG (Do I care about this??)
 bool machineData[21];   // sc 1-16, hyd up, hyd down, tram right, tram left, geostop
 IPAddress myIp;
 WiFiUDP WifiUdp = WiFiUDP();
@@ -46,7 +36,7 @@ void setup()
 {
   // put your setup code here, to run once:
 
-  Serial.begin(38400);
+  Serial.begin(115200);
   Serial.println("\n\nESP32_WifiSectionControl");
 
   if (debugWaitForMe)
@@ -61,7 +51,6 @@ void setup()
   Serial.println("Instantiating relay board");
   relayBoard.begin();
   Serial.println("Setup complete");
-  configOutputPins();
   configWifi();
   configUDP();
 }
@@ -91,41 +80,19 @@ void loop()
   // if no PGNs received for a long time then set pins to failsafe state
   if ((currentMillis - lastTimePgnReceived) > 10000)
   {
-    for (int i = 0; i < sizeof(sectionStates); i++)
-    {
-      sectionStates[i] = failSafePinState;
-    }
-    Serial.println((String) "No PGNS received for a long time!!!! Setting pinRelays to failSafePinState: " + failSafePinState);
+    relayBoard.allOff();
+    Serial.println((String) "No PGNS received for a long time!!!! Setting all relays Off!");
   }
 
-  // update the Wifi LED status once per second
-  // LED on     = wifi and AgIO connected
-  // LED blink  = wifi connected but no AgIO connection
-  // LED off    = no wifi connection
   if ((currentMillis - lastWifiLedService) >= 1000)
   {
     if ((WiFi.status() == WL_CONNECTED) && ((currentMillis - lastTimePgnReceived) < 1000))
     {
-      digitalWrite(pinLedWifi, HIGH);
+      //sendHardwareMessage("FUCK!");
     }
-    else if (WiFi.status() == WL_CONNECTED)
-    {
-      digitalWrite(pinLedWifi, !digitalRead(pinLedWifi)); // read the pin state and toggle it
-    }
-    else
-    {
-      digitalWrite(pinLedWifi, LOW);
-    }
+
     lastWifiLedService = currentMillis;
   }
 
-  // updatePinStates as often as possible
   updatePinStates();
-
-  // send a heartbeat message to aid in debug
-  if (debug && ((currentMillis - lastHeartBeatMillis) >= 5000))
-  {
-    Serial.println((String) "loop 5s heartbeat " + currentMillis);
-    lastHeartBeatMillis = currentMillis;
-  }
 }
