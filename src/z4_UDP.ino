@@ -1,11 +1,4 @@
 
-void configUDP(void)
-{
-  Serial.println("\nSetting UDP Ports");
-  WifiUdp.begin(8888); // port that AgIO sends data out on
-  Serial.println("UDP Ports set successfully");
-}
-
 void ReceiveUdp()
 {
 
@@ -38,7 +31,7 @@ void ReceiveUdp()
         }
 
         // Send the reply message. This should make the machine module in AgIO turn green
-        SendUdp(helloFromMachineModule, sizeof(helloFromMachineModule), {255, 255, 255, 255}, 9999);
+        SendUdp(helloFromMachineModule, sizeof(helloFromMachineModule), {255, 255, 255, 255}, DestinationPort);
 
       }
 
@@ -86,7 +79,7 @@ void ReceiveUdp()
         uint8_t scanReply[13] = {0x80, 0x81, 123, 203, 7, myIp[0], myIp[1], myIp[2], myIp[3], rem_ip[0], rem_ip[1], rem_ip[2], 0};
 
         // Send the reply message
-        SendUdp(scanReply, sizeof(scanReply), {255, 255, 255, 255}, 9999);
+        SendUdp(scanReply, sizeof(scanReply), {255, 255, 255, 255}, DestinationPort);
 
         if (debug)
         {

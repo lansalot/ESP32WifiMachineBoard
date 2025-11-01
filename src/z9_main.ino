@@ -8,19 +8,16 @@
 #include <Arduino.h>
 #include "z0ESP32RelayClass.ino"
 #include "z2_EEPROM.ino"
+#include <ESP2SOTA.h>		// https://github.com/pangodream/ESP2SOTA
 
 
 RelayBoard relayBoard(12, 13, 14, 5);
 #include <WiFi.h>
 #include <WebServer.h>
-#include <DNSServer.h>
+//#include <DNSServer.h>
 #include <WiFiUdp.h>
 #include <WiFiClient.h>
 const uint8_t ModStringLengths = 15;
-
-// wifi stuff
-const char *APssid = "HomeAP";
-const char *APpassword = "BigHouse14!!";
 
 // TODO: do I really need to set the 123 as we broadcast?
 const uint8_t lastIPOctet = 123; // The IP address will be set to xxx.xxx.xxx.lastIPOctet. Machine modules are expected to end in 123
@@ -30,6 +27,8 @@ WiFiUDP WifiUdp = WiFiUDP();
 WebServer server(80);
 bool WifiMasterOn = false;
 uint32_t WifiSwitchesTimer;
+const uint16_t ListeningPort = 8888;
+const uint16_t DestinationPort = 9999;
 
 // Debug variables
 const bool debugWaitForMe = 0; // wait for someoníe to open a serial connection before proceeding with setup
@@ -53,7 +52,7 @@ struct ModuleConfig	// about 130 bytes
 {
 	// RC15
 	uint8_t ID = 0;
-	char APname[ModStringLengths] = "RateModule";
+	char APname[ModStringLengths] = "ESP32Switcher";
 	char APpassword[ModStringLengths] = "111222333";
 };
 
@@ -104,21 +103,16 @@ void setup()
   relayBoard.begin();
   Serial.println("Setup complete");
   
-  // Try to connect to stored WiFi networks first, fall back to hardcoded if none work
-  if (!connectToStoredNetworks()) {
-    Serial.println("Using hardcoded WiFi credentials...");
-    configWifi();
-  }
-  
-  configUDP();
+  // Start WiFi (AP mode + attempt to connect to stored networks)
+  configWifi();
+
 }
 
 void loop()
 {
-  // put your main code here, to run repeatedly:
-
   currentMillis = millis();
-
+	
+  server.handleClient();
   // receive UDP as often as possible
   ReceiveUdp();
 
