@@ -1,5 +1,18 @@
 #include <Arduino.h>
 
+
+
+
+struct ModuleConfig	// about 130 bytes
+{
+	// RC15
+	uint8_t ID = 0;
+	char APname[ModStringLengths] = "ESP32Switcher";
+	char APpassword[ModStringLengths] = "111222333";
+};
+
+ModuleConfig MDL;
+
 IPAddress Wifi_DestinationIP(192, 168, 100, 255);
 WiFiUDP UDP_Wifi;
 
@@ -175,6 +188,7 @@ void startAccessPoint() {
 	server.on("/", HandleRoot);
 	server.on("/page1", HandlePage1);
 	server.on("/page2", HandlePage2);
+	server.on("/style.css", HandleCSS);
 	server.on("/ButtonPressed", ButtonPressed);
 	server.onNotFound(HandleRoot);
 

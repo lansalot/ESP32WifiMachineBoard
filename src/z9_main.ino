@@ -9,7 +9,14 @@
 #include "z0ESP32RelayClass.ino"
 #include "z2_EEPROM.ino"
 #include <ESP2SOTA.h>		// https://github.com/pangodream/ESP2SOTA
+#include <LittleFS.h>
 
+// Forward declarations for functions defined in other .ino files
+void configWifi();
+void configUDP();
+void ReceiveUdp();
+void updatePinStates();
+bool connectToStoredNetworks();
 
 RelayBoard relayBoard(12, 13, 14, 5);
 #include <WiFi.h>
@@ -17,7 +24,6 @@ RelayBoard relayBoard(12, 13, 14, 5);
 //#include <DNSServer.h>
 #include <WiFiUdp.h>
 #include <WiFiClient.h>
-const uint8_t ModStringLengths = 15;
 
 // TODO: do I really need to set the 123 as we broadcast?
 const uint8_t lastIPOctet = 123; // The IP address will be set to xxx.xxx.xxx.lastIPOctet. Machine modules are expected to end in 123
@@ -34,29 +40,7 @@ const uint16_t DestinationPort = 9999;
 const bool debugWaitForMe = 0; // wait for someoníe to open a serial connection before proceeding with setup
 const bool debug = 0;          // additional serial messages to aid debug
 
-struct ModuleNetwork
-{
-	uint16_t Identifier = 9876;
-	uint8_t IP0 = 192;
-	uint8_t IP1 = 168;
-	uint8_t IP2 = 1;
-	uint8_t IP3 = 50;
-	bool WifiModeUseStation = false;				// false - AP mode, true - AP + Station 
-	char SSID[ModStringLengths] = "Tractor";		// name of network ESP32 connects to
-	char Password[ModStringLengths] = "111222333";
-};
 
-ModuleNetwork MDLnetwork;
-
-struct ModuleConfig	// about 130 bytes
-{
-	// RC15
-	uint8_t ID = 0;
-	char APname[ModStringLengths] = "ESP32Switcher";
-	char APpassword[ModStringLengths] = "111222333";
-};
-
-ModuleConfig MDL;
 
 // Program variables
 bool sectionStates[64]; // holds the state of AOG's sections. AOG supports up to 64 sections, we read all of them
@@ -93,6 +77,13 @@ void setup()
   // Initialize EEPROM
   eepromConfig.begin();
   eepromConfig.loadFromEEPROM();
+  
+  // Initialize LittleFS for HTML pages
+  if (!LittleFS.begin(true)) {
+    Serial.println("LittleFS Mount Failed");
+  } else {
+    Serial.println("LittleFS Mounted Successfully");
+  }
   
   // Example: Set WiFi networks (uncomment and modify as needed)
   // eepromConfig.setWifiNetwork(0, "HomeNetwork", "password123");
