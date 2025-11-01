@@ -87,12 +87,12 @@ String GetPage2()
 	st += "";
 	st += "        <tr>";
 	st += "          <td align='left'>Network</td>";
-	st += "          <td><input class='InputCell' size='20' name='prop1' value='" + String(MDL.SSID) + "' ID=Text1></td>";
+	//st += "          <td><input class='InputCell' size='20' name='prop1' value='" + String(MDL.SSID) + "' ID=Text1></td>";
 	st += "        </tr>";
 	st += "";
 	st += "        <tr>";
 	st += "          <td align='left'>Password</td>";
-	st += "          <td><input class='InputCell' size='20' name='prop2' value='" + String(MDL.Password) + "' ID=Text2></td>";
+	//st += "          <td><input class='InputCell' size='20' name='prop2' value='" + String(MDL.Password) + "' ID=Text2></td>";
 	st += "        </tr>";
 	st += "      </table>";
 	st += "";
@@ -101,7 +101,7 @@ String GetPage2()
 	st += "    </form>";
 	if (WiFi.isConnected())
 	{
-		st += "<p>Wifi Connected to " + String(MDL.SSID) + "</p>";
+		//st += "<p>Wifi Connected to " + String(MDL.SSID) + "</p>";
 	}
 	else
 	{

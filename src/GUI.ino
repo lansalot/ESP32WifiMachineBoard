@@ -43,7 +43,7 @@ void handleCredentials()
 		String(MDLnetwork.SSID) != OldSSID ||
 		String(MDLnetwork.Password) != OldPassword)
 	{
-		SaveNetworks();
+		//SaveNetworks();
 		delay(3000);
 		ESP.restart();
 	}

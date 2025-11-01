@@ -1,3 +1,5 @@
+#include <Arduino.h>
+
 // Try to connect to stored WiFi networks from EEPROM
 // Returns true if connected successfully, false otherwise
 bool connectToStoredNetworks() {
@@ -58,8 +60,8 @@ void configWifi (void) {
 
   // connect to wifi
   WiFi.mode(WIFI_STA);  // station mode: the ESP32 connects to an access point
-  WiFi.begin(ssid, password);
-  Serial.println((String)"Attempting to connect to ssid:" + ssid + " password:" + password);
+  WiFi.begin(APssid, APpassword);
+  Serial.println((String)"Attempting to connect to ssid:" + APssid + " password:" + APpassword);
 
   while (WiFi.status() != WL_CONNECTED) {
     Serial.println("Connecting........");

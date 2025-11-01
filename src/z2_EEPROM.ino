@@ -1,3 +1,6 @@
+#ifndef _Z2_EEPROM_INO_
+#define _Z2_EEPROM_INO_
+#include <Arduino.h>
 #include <EEPROM.h>
 
 // EEPROM Configuration Class
@@ -179,3 +182,4 @@ public:
 
 // Global instance
 EEPROMConfig eepromConfig;
+#endif

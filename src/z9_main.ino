@@ -1,34 +1,73 @@
-#include "z0ESP32RelayClass.ino"
-// Wifi udp section control using ESP32 for AgOpenGPS (written/tested with v6.0.5)
+// Wifi udp section control using ESP32 for AgOpenGPS
 // Written by WildBuckwheat using Arduino IDE 1.8.19
 // Started on 2024-02-06
 // Finished on 2024-02-27
 // Adapted for 16-channel relay board from Amazon (AndyAOG)
 // Started 2025-10-31
 
+#include <Arduino.h>
+#include "z0ESP32RelayClass.ino"
+#include "z2_EEPROM.ino"
+
 
 RelayBoard relayBoard(12, 13, 14, 5);
-#include <WiFi.h> // version 1.2.7
+#include <WiFi.h>
 #include <WebServer.h>
 #include <DNSServer.h>
-
 #include <WiFiUdp.h>
 #include <WiFiClient.h>
-// Enter Wifi details here
-const char *ssid = "xxxx";
-const char *password = "xxxx";
+const uint8_t ModStringLengths = 15;
+
+// wifi stuff
+const char *APssid = "HomeAP";
+const char *APpassword = "BigHouse14!!";
+
+// TODO: do I really need to set the 123 as we broadcast?
 const uint8_t lastIPOctet = 123; // The IP address will be set to xxx.xxx.xxx.lastIPOctet. Machine modules are expected to end in 123
+
+IPAddress myIp;
+WiFiUDP WifiUdp = WiFiUDP();
+WebServer server(80);
+bool WifiMasterOn = false;
+uint32_t WifiSwitchesTimer;
 
 // Debug variables
 const bool debugWaitForMe = 0; // wait for someoníe to open a serial connection before proceeding with setup
 const bool debug = 0;          // additional serial messages to aid debug
 
+struct ModuleNetwork
+{
+	uint16_t Identifier = 9876;
+	uint8_t IP0 = 192;
+	uint8_t IP1 = 168;
+	uint8_t IP2 = 1;
+	uint8_t IP3 = 50;
+	bool WifiModeUseStation = false;				// false - AP mode, true - AP + Station 
+	char SSID[ModStringLengths] = "Tractor";		// name of network ESP32 connects to
+	char Password[ModStringLengths] = "111222333";
+};
+
+ModuleNetwork MDLnetwork;
+
+struct ModuleConfig	// about 130 bytes
+{
+	// RC15
+	uint8_t ID = 0;
+	char APname[ModStringLengths] = "RateModule";
+	char APpassword[ModStringLengths] = "111222333";
+};
+
+ModuleConfig MDL;
+
 // Program variables
 bool sectionStates[64]; // holds the state of AOG's sections. AOG supports up to 64 sections, we read all of them
 uint8_t pinConfig[24];  // uses the pin config's from the Arduino section of AOG (Do I care about this??)
 bool machineData[21];   // sc 1-16, hyd up, hyd down, tram right, tram left, geostop
-IPAddress myIp;
-WiFiUDP WifiUdp = WiFiUDP();
+bool Button[16];      // buttons states in the GUI
+
+
+
+
 uint8_t autoSteerUdpData[30]; // Buffer For Receiving UDP Data
 unsigned long currentMillis;
 unsigned long lastTimePgnReceived;
@@ -100,7 +139,7 @@ void loop()
   if ((currentMillis - lastTimePgnReceived) > 10000)
   {
     relayBoard.allOff();
-    Serial.println((String) "No PGNS received for a long time!!!! Setting all relays Off!");
+    //Serial.println((String) "No PGNS received for a long time!!!! Setting all relays Off!");
   }
 
   if ((currentMillis - lastWifiLedService) >= 1000)

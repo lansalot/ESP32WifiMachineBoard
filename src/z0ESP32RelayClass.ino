@@ -1,5 +1,6 @@
 #ifndef ESP32RELAYCLASS_INO
 #define ESP32RELAYCLASS_INO
+#include <Arduino.h>
 // RelayBoard class to manage 16 relays via 74HC595 shift registers
 // Example board at https://www.amazon.co.uk/gp/product/B0DHF121MQ
 
