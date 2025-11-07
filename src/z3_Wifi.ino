@@ -1,3 +1,4 @@
+#include <esp_wifi.h> 
 #include <Arduino.h>
 
 
@@ -23,6 +24,13 @@ WiFiUDP UDP_Wifi;
 void configWifi() {
   Serial.println("\n=== Starting WiFi Configuration ===");
   
+   // Disable WiFi power saving for low latency - ADD THIS LINE
+  WiFi.setSleep(false);
+
+  // Set WiFi to highest performance mode (optional - more aggressive)
+  esp_wifi_set_ps(WIFI_PS_NONE);  // Completely disable power saving at driver level
+  
+
   // Start Access Point mode for configuration
   Serial.println("Starting Access Point...");
   WiFi.mode(WIFI_MODE_APSTA); // AP + Station mode
@@ -90,7 +98,7 @@ bool connectToStoredNetworks() {
         
         if (WiFi.status() == WL_CONNECTED) {
           Serial.println("\nSuccessfully connected to stored network!");
-          
+          WiFi.setSleep(false); // Disable power saving for low latency
           // Configure IP address
           myIp = WiFi.localIP();
           Serial.println((String)"ESP32 IP address (provided by router): " + myIp[0] + "." + myIp[1] + "." + myIp[2] + "." + myIp[3]);

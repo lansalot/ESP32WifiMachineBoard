@@ -189,4 +189,5 @@ void SendUdp(uint8_t *data, uint8_t datalen, IPAddress dip, uint16_t dport)
   WifiUdp.beginPacket(dip, dport);
   WifiUdp.write(data, datalen);
   WifiUdp.endPacket();
+  yield();
 }

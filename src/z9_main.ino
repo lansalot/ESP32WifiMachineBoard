@@ -117,6 +117,8 @@ void loop()
       WiFi.disconnect();
       WiFi.reconnect();
       lastWifiReconnectMillis = currentMillis;
+      Serial.print(millis());
+      Serial.println(" tried reconnect...");
     }
   }
 
@@ -138,4 +140,5 @@ void loop()
   }
 
   updatePinStates();
+  yield();
 }
